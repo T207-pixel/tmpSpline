@@ -17,8 +17,8 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    static const int MAX_XLENGHT = 100;
-    static const int MIN_YLENGHT = 100;
+    static const int MAX_XLENGHT = 20;
+    static const int MIN_YLENGHT = 20;
 
 public:
     MainWindow(DataGenerator *dataGenerator, QWidget *parent = nullptr);
@@ -26,12 +26,11 @@ public:
 
 private:
     void updateSeries(QSplineSeries &newSplineSeries);
-    void setChart();
+    void setChart(QSplineSeries *newSplineSeries);
     void updateChart();
     Ui::MainWindow *ui;
     DataGenerator *dataGenerator_;
     QChart *chart_;
-    QChartView *chartView_;
 
 private slots:
     void onDataUpdated();

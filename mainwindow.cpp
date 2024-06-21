@@ -9,9 +9,17 @@ MainWindow::MainWindow(DataGenerator *dataGenerator, QWidget *parent)
     connect(dataGenerator_, &DataGenerator::dataUpdated, this, &MainWindow::onDataUpdated);
 
     chart_ = new QChart();
-    chartView_ = new QChartView(chart_);
 
-    setChart();
+    QSplineSeries *newSplineSeries = new QSplineSeries();
+    updateSeries(*newSplineSeries);
+
+    setChart(newSplineSeries);
+
+    QChartView *chartView = new QChartView(chart_);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setVisible(true);
+
+    setCentralWidget(chartView);
 }
 
 MainWindow::~MainWindow() {
@@ -20,15 +28,7 @@ MainWindow::~MainWindow() {
 
 void MainWindow::onDataUpdated() {
     qDebug() << "In onDataUpdated: ";
-
     updateChart();
-
-    chartView_->setRenderHint(QPainter::Antialiasing);
-    chartView_->setVisible(true);
-    chartView_->repaint();
-
-    setCentralWidget(chartView_);
-
 }
 
 void MainWindow::updateSeries(QSplineSeries &newSplineSeries) {
@@ -38,23 +38,18 @@ void MainWindow::updateSeries(QSplineSeries &newSplineSeries) {
     dataGenerator_->printData();
 }
 
-void MainWindow::setChart() {
+void MainWindow::setChart(QSplineSeries *newSplineSeries) {
+    chart_->setTitle("Трафик пакетов");
     chart_->legend()->hide();
-    chart_->setTheme(QChart::ChartTheme::ChartThemeDark);
+    chart_->addSeries(newSplineSeries);
+
     chart_->createDefaultAxes();
-
-    // Создаем вертикальную ось, если она отсутствует
-    QValueAxis *verticalAxis = new QValueAxis(chart_);
-    verticalAxis->setRange(0, MIN_YLENGHT);
-    chart_->addAxis(verticalAxis, Qt::AlignLeft);
-
-    // Создаем горизонтальную ось, если она тоже отсутствует
-    QValueAxis *horizontalAxis = new QValueAxis(chart_);
-    horizontalAxis->setRange(0, MAX_XLENGHT);
-    chart_->addAxis(horizontalAxis, Qt::AlignBottom);
-
     chart_->axes(Qt::Vertical).first()->setRange(0, MIN_YLENGHT);
     chart_->axes(Qt::Horizontal).first()->setRange(0, MAX_XLENGHT);
+    QValueAxis *axisX = qobject_cast<QValueAxis*>(chart_->axes(Qt::Horizontal).first());
+    axisX->setTickCount(11);
+    axisX->setLabelFormat("%d");
+
     chart_->setVisible(true);
 }
 
@@ -62,6 +57,8 @@ void MainWindow::updateChart() {
     chart_->removeAllSeries();
     QSplineSeries *newSplineSeries = new QSplineSeries();
     updateSeries(*newSplineSeries);
-    chart_->addSeries(newSplineSeries);
+
+    setChart(newSplineSeries);
+
     qDebug() << "Chart size: " << chart_->series().size();
 }
